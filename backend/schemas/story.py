@@ -1,13 +1,12 @@
 # types of python data we want our apis to accept and return
 # the structure and shape of the data we want to handle
 
-from typing import List, Optional, Dict
 from datetime import datetime
 from pydantic import BaseModel
 
 class StoryOptionsSchema(BaseModel):
     text: str
-    node_id: Optional[int] = None
+    node_id: int | None = None
     
 class StoryNodeBase(BaseModel):
     content: str
@@ -16,14 +15,14 @@ class StoryNodeBase(BaseModel):
     
 class CompleteStoryNodeResponse(StoryNodeBase):
     id: int
-    options: List[StoryOptionsSchema] = []
+    options: list[StoryOptionsSchema] = []
     
     class Config:
         from_attributes = True
         
 class StoryBase(BaseModel):
     title: str
-    session_id: Optional[str]
+    session_id: str | None
     
     class Config:
         from_attributes = True
@@ -35,7 +34,7 @@ class CompleteStoryResponse(StoryBase):
     id: int
     created_at: datetime
     root_node: CompleteStoryNodeResponse
-    all_nodes: Dict[int, CompleteStoryNodeResponse]
+    all_nodes: dict[int, CompleteStoryNodeResponse]
     
     class Config:
         from_attributes = True
