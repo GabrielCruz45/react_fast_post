@@ -8,9 +8,9 @@ class StoryJobResponse(BaseModel):
     job_id:         int
     status:         str
     created_at:     datetime
-    story_id:       int         | None = None
-    completed_at:   datetime    | None = None
-    error:          str         | None = None
+    story_id:       int         |   None = None
+    completed_at:   datetime    |   None = None
+    error:          str         |   None = None
     
     class Config:
         from_attributes = True
