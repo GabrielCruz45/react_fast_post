@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     DATABASE_URL: str
     ALLOWED_ORIGINS: str = ""
-    OPENAI_API_KEY: str
+    GOOGLE_API_KEY: str
     
     
     # .env files don't support python lists (only csv), so we convert that here

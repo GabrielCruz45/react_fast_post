@@ -1,20 +1,22 @@
 from sqlalchemy.orm import Session
-from core.config import settings
 
-from langchain_openai import ChatOpenAI
-from langchain_core import ChatPromptTemplate
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 
 from core.prompts import STORY_PROMPT
 from models.story import Story, StoryNode
 from core.models import StoryLLMResponse, StoryNodeLLM
 
+from dotenv import load_dotenv
+
+load_dotenv()
 class StoryGenerator:
     
     # class to organize some of the functions that we have for out story generator
     @classmethod
     def _get_llm(cls): # when the function starts with _ its a private method so it should be called internally from the class; python convention
-        return ChatOpenAI(model="gpt-4-turbo")
+        return ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.7)
     
     @classmethod
     def generate_story(cls, db: Session, session_id: str, theme: str = "fantasy") -> Story:
