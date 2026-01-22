@@ -37,6 +37,7 @@ def create_story(
     response.set_cookie(key="session_id", value=session_id, httponly=True) # stores what our session id actually is, so that we can use it later
     
     job_id = str(uuid.uuid4())
+    
     job = StoryJob(
         job_id=job_id,
         session_id=session_id,
@@ -47,7 +48,6 @@ def create_story(
     db.add(job) # staging the change
     db.commit() # commititng the change
     
-                                                    # TODO: Add background tasks, generate story
     background_tasks.add_task(
         generate_story_task,
         job_id = job_id,
@@ -95,7 +95,7 @@ def generate_story_task(job_id: str, theme: str, session_id: str):
         db.close()
             
 
-@router.get("/{story_id}/complete", response_model=CompleteStoryNodeResponse)
+@router.get("/{story_id}/complete", response_model=CompleteStoryResponse)
 def get_complete_story(story_id: int, db: Session = Depends(get_db)):
     story = db.query(Story).filter(Story.id == story_id).first()
     if not story:
@@ -118,7 +118,7 @@ def build_complete_story_tree(db: Session, story: Story) -> CompleteStoryRespons
             content=node.content,
             is_ending=node.is_ending,
             is_winning_ending=node.is_winning_ending,
-            options=node.options 
+            options=node.options # or []
         )
         
         node_dict[node.id] = node_response 
@@ -127,10 +127,11 @@ def build_complete_story_tree(db: Session, story: Story) -> CompleteStoryRespons
     if not root_node:
         raise HTTPException(status_code=500, detail="Story root node not found")
     
-    return CompleteStoryNodeResponse(
+    
+    return CompleteStoryResponse(
         id=story.id,
         title=story.title,
-        session_id=story.title,
+        session_id=story.session_id,
         created_at=story.created_at,
         root_node=node_dict[root_node.id],
         all_nodes=node_dict
