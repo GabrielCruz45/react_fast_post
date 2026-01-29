@@ -16,7 +16,7 @@ Create a simple game database:
 """
 
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, create_engine
-from sqlalchemy.orm import declarative_base, relationship, Session
+from sqlalchemy.orm import declarative_base, relationship, Session, Mapped, mapped_column
 from sqlalchemy.sql import func
 from datetime import datetime
 
@@ -24,11 +24,30 @@ Base = declarative_base()
 
 # TODO: Create your Player model
 class Player(Base):
-    pass
+    __tablename__ = "players"
+    
+    id:         Mapped[int]         = mapped_column(primary_key=True)
+    username:   Mapped[str]         = mapped_column(String(30))
+    level:      Mapped[int]         = mapped_column(default=1)
+    created_at: Mapped[datetime]    = mapped_column(server_default=func.now())
+    
+    characters: Mapped[list["Character"]] = relationship(
+        back_populates="player", cascade="all, delete-orphan"
+    )
 
 # TODO: Create your Character model
 class Character(Base):
-    pass
+    __tablename__ = "characters"
+    
+    id:         Mapped[int]         = mapped_column(primary_key=True)
+    player_id:  Mapped[int]         = mapped_column(ForeignKey("players.id"), index=True)
+    name:       Mapped[str]         = mapped_column(String(30))
+    class_type: Mapped[str]         = mapped_column(String(30))
+    
+    player:     Mapped["Player"]    = relationship(back_populates="characters")
+    
+    
+    
 
 
 # Test your code
