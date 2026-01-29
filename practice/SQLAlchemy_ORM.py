@@ -15,7 +15,7 @@ Create a simple game database:
 - Set up relationship between Player and Character (one player has many characters)
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, create_engine
+from sqlalchemy import Integer, String, DateTime, Numeric, ForeignKey, create_engine
 from sqlalchemy.orm import declarative_base, relationship, Session, Mapped, mapped_column
 from sqlalchemy.sql import func
 from datetime import datetime
@@ -31,9 +31,24 @@ class Player(Base):
     level:      Mapped[int]         = mapped_column(default=1)
     created_at: Mapped[datetime]    = mapped_column(server_default=func.now())
     
+    
     characters: Mapped[list["Character"]] = relationship(
-        back_populates="player", cascade="all, delete-orphan"
+        back_populates="player_from_character", 
+        cascade="all, delete-orphan"
     )
+    
+    items: Mapped[list["Item"]] = relationship(
+        back_populates="player_from_item", 
+        cascade="all, delete-orphan"
+    )
+        
+    inventory: Mapped["PlayerInventory"] = relationship(
+        back_populates="player_from_inventory", 
+        uselist=False, 
+        cascade="all, deletes-orphan"
+    )
+
+
 
 # TODO: Create your Character model
 class Character(Base):
@@ -44,7 +59,7 @@ class Character(Base):
     name:       Mapped[str]         = mapped_column(String(30))
     class_type: Mapped[str]         = mapped_column(String(30))
     
-    player:     Mapped["Player"]    = relationship(back_populates="characters")
+    player_from_character:     Mapped["Player"]    = relationship(back_populates="characters")
     
     
     
@@ -87,15 +102,30 @@ Create an Inventory system that demonstrates flush() usage:
 - Create 3 items, flush to get IDs, then add them to a player's inventory
 """
 
+from decimal import Decimal
+
 # TODO: Create your Item model
 class Item(Base):
     __tablename__ = "items"
-    pass
+    
+    id:         Mapped[int]             = mapped_column(primary_key=True)
+    name:       Mapped[str]             = mapped_column(String(30))
+    price:      Mapped[Decimal]         = mapped_column(Numeric(precision=10, scale=2))
+    
+    player_from_item: Mapped["Player"]  = relationship(back_populates="items")
+    
+
 
 # TODO: Create your PlayerInventory model  
 class PlayerInventory(Base):
     __tablename__ = "player_inventory"
-    pass
+    
+    id:         Mapped[int]             = mapped_column(primary_key=True)
+    player_id:  Mapped[int]             = mapped_column(ForeignKey("players.id"), index=True)
+    item_id:    Mapped[int]             = mapped_column(ForeignKey("items.id"), index=True)
+    quantity:   Mapped[int]             = mapped_column(default=0)
+    
+    player_from_inventory: Mapped["Player"] = relationship(back_populates="inventory")
 
 
 
