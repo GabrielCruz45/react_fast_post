@@ -98,33 +98,26 @@ class PlayerInventory(Base):
     pass
 
 
+
 # Test your code
 if __name__ == "__main__":
     engine = create_engine("sqlite:///:memory:", echo=False)
     Base.metadata.create_all(engine)
     session = Session(engine)
     
-    # Create player
-    player = Player(username="Collector", level=5)
-    session.add(player)
-    session.flush()  # Get player.id
+    # TODO: Create player and add to session
+
     
-    # Create items and flush to get their IDs
-    sword = Item(name="Iron Sword", price=100)
-    shield = Item(name="Wooden Shield", price=50)
-    potion = Item(name="Health Potion", price=25)
-    
-    session.add_all([sword, shield, potion])
-    session.flush()  # Now items have IDs!
-    
-    # Add to player inventory using the IDs
-    inv1 = PlayerInventory(player_id=player.id, item_id=sword.id, quantity=1)
-    inv2 = PlayerInventory(player_id=player.id, item_id=potion.id, quantity=5)
-    
-    session.add_all([inv1, inv2])
-    session.commit()
+    # TODO: Create items
+
+
+    # TODO: Add items to player inventory
+
+
+    # TODO: Commit session
     
     print(f"Player {player.username} inventory created with {session.query(PlayerInventory).count()} items")
+
 
 
 """
