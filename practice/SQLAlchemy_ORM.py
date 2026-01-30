@@ -30,22 +30,10 @@ class Player(Base):
     username:   Mapped[str]         = mapped_column(String(30))
     level:      Mapped[int]         = mapped_column(default=1)
     created_at: Mapped[datetime]    = mapped_column(server_default=func.now())
-    
-    
+     
     characters: Mapped[list["Character"]] = relationship(
         back_populates="player_from_character", 
         cascade="all, delete-orphan"
-    )
-    
-    items: Mapped[list["Item"]] = relationship(
-        back_populates="player_from_item", 
-        cascade="all, delete-orphan"
-    )
-        
-    inventory: Mapped["PlayerInventory"] = relationship(
-        back_populates="player_from_inventory", 
-        uselist=False, 
-        cascade="all, deletes-orphan"
     )
 
 
@@ -112,10 +100,7 @@ class Item(Base):
     name:       Mapped[str]             = mapped_column(String(30))
     price:      Mapped[Decimal]         = mapped_column(Numeric(precision=10, scale=2))
     
-    player_from_item: Mapped["Player"]  = relationship(back_populates="items")
     
-
-
 # TODO: Create your PlayerInventory model  
 class PlayerInventory(Base):
     __tablename__ = "player_inventory"
@@ -124,8 +109,6 @@ class PlayerInventory(Base):
     player_id:  Mapped[int]             = mapped_column(ForeignKey("players.id"), index=True)
     item_id:    Mapped[int]             = mapped_column(ForeignKey("items.id"), index=True)
     quantity:   Mapped[int]             = mapped_column(default=0)
-    
-    player_from_inventory: Mapped["Player"] = relationship(back_populates="inventory")
 
 
 
@@ -136,15 +119,29 @@ if __name__ == "__main__":
     session = Session(engine)
     
     # TODO: Create player and add to session
-
+    player = Player(username="gxbs_")
+    session.add(player)
+    session.flush() # get id?
     
     # TODO: Create items
-
+    green_potion    = Item(name="Green Potion", price=1.35)
+    red_potion      = Item(name="Red Potion", price=3.51)
+    blue_potion     = Item(name="Blue Potion", price=5.13)
+    
+    session.add_all([green_potion, red_potion, blue_potion])
+    session.flush() # get id?
+    
+    
 
     # TODO: Add items to player inventory
-
+    inv_item_green  = PlayerInventory(player_id=player.id, item_id=green_potion.id, quantity=1)
+    inv_item_red    = PlayerInventory(player_id=player.id, item_id=red_potion.id, quantity=1)
+    inv_item_blue   = PlayerInventory(player_id=player.id, item_id=blue_potion.id, quantity=1)
+    
+    session.add_all([inv_item_green, inv_item_red, inv_item_blue])
 
     # TODO: Commit session
+    session.commit()
     
     print(f"Player {player.username} inventory created with {session.query(PlayerInventory).count()} items")
 
