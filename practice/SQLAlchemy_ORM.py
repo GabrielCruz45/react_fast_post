@@ -27,7 +27,7 @@ class Player(Base):
     __tablename__ = "players"
     
     id:         Mapped[int]         = mapped_column(primary_key=True)
-    username:   Mapped[str]         = mapped_column(String(30))
+    username:   Mapped[str]         = mapped_column(String(32))
     level:      Mapped[int]         = mapped_column(default=1)
     created_at: Mapped[datetime]    = mapped_column(server_default=func.now())
      
@@ -44,8 +44,8 @@ class Character(Base):
     
     id:         Mapped[int]         = mapped_column(primary_key=True)
     player_id:  Mapped[int]         = mapped_column(ForeignKey("players.id"), index=True)
-    name:       Mapped[str]         = mapped_column(String(30))
-    class_type: Mapped[str]         = mapped_column(String(30))
+    name:       Mapped[str]         = mapped_column(String(32))
+    class_type: Mapped[str]         = mapped_column(String(32))
     
     player_from_character:     Mapped["Player"]    = relationship(back_populates="characters")
     
@@ -97,7 +97,7 @@ class Item(Base):
     __tablename__ = "items"
     
     id:         Mapped[int]             = mapped_column(primary_key=True)
-    name:       Mapped[str]             = mapped_column(String(30))
+    name:       Mapped[str]             = mapped_column(String(32))
     price:      Mapped[Decimal]         = mapped_column(Numeric(precision=10, scale=2))
     
     
@@ -156,18 +156,35 @@ Create a Quest system with JSON data:
 - Set up bidirectional relationships
 """
 
+from typing import Any
 from sqlalchemy import JSON, Boolean
+from sqlalchemy.ext.mutable import MutableDict
+# from sqlalchemy.dialects.postgresql import JSONB                                                      **for postgres!
+
 
 # TODO: Create your Quest model
 class Quest(Base):
     __tablename__ = "quests"
-    pass
+    
+    id:             Mapped[int]             = mapped_column(primary_key=True)
+    title:          Mapped[str]             = mapped_column(String(32))
+    description:    Mapped[str]             = mapped_column(String(256))
+    rewards:        Mapped[dict[str, Any]]  = mapped_column(MutableDict.as_mutable(JSON))
+    
+    player_quests:  Mapped[list["PlayerQuest"]] = relationship(back_populates="quest")
 
 # TODO: Create your PlayerQuest model
 class PlayerQuest(Base):
     __tablename__ = "player_quests"
-    pass
-
+    
+    id:             Mapped[int]             = mapped_column(primary_key=True)
+    player_id:      Mapped[int]             = mapped_column(ForeignKey("players.id"), index=True)
+    quest_id:       Mapped[int]             = mapped_column(ForeignKey("quests.id"), index=True)
+    status:         Mapped[str]             = mapped_column(String(32))
+    progress:       Mapped[dict[str, Any]]  = mapped_column(MutableDict.as_mutable(JSON))
+    # progress: Mapped[dict[str, Any]] = mapped_column(JSONB)                                           **for posstgres!
+    
+    quest:          Mapped["Quest"]         = relationship(back_populates="player_quests")
 
 # Test your code
 if __name__ == "__main__":
