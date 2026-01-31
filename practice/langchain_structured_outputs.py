@@ -30,7 +30,27 @@ load_dotenv()
 
 # TODO: Create your character backstory generator
 def generate_backstory(character_class: str, name: str) -> str:
-    pass
+    model = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        temperature=0.7,
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+    )
+    
+    template = ChatPromptTemplate.from_messages([
+        ("system", "You are a fantasy character backstory writer"),
+        ("human", "Create a backstory for a {character_class} named {name}"),
+    ])
+    
+    message = template.format_messages(
+        character_class=character_class,
+        name=name
+    )
+    
+    ai_msg = model.invoke(message)
+    
+    return ai_msg.text
 
 
 # Test your code

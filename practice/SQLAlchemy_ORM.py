@@ -159,17 +159,17 @@ Create a Quest system with JSON data:
 from typing import Any
 from sqlalchemy import JSON, Boolean
 from sqlalchemy.ext.mutable import MutableDict
-# from sqlalchemy.dialects.postgresql import JSONB                                                      **for postgres!
+# from sqlalchemy.dialects.postgresql import JSONB                                                              **for postgres!
 
 
 # TODO: Create your Quest model
 class Quest(Base):
     __tablename__ = "quests"
     
-    id:             Mapped[int]             = mapped_column(primary_key=True)
-    title:          Mapped[str]             = mapped_column(String(32))
-    description:    Mapped[str]             = mapped_column(String(256))
-    rewards:        Mapped[dict[str, Any]]  = mapped_column(MutableDict.as_mutable(JSON))
+    id:             Mapped[int]                 = mapped_column(primary_key=True)
+    title:          Mapped[str]                 = mapped_column(String(32))
+    description:    Mapped[str]                 = mapped_column(String(256))
+    rewards:        Mapped[dict[str, Any]]      = mapped_column(MutableDict.as_mutable(JSON))
     
     player_quests:  Mapped[list["PlayerQuest"]] = relationship(back_populates="quest")
 
@@ -177,14 +177,14 @@ class Quest(Base):
 class PlayerQuest(Base):
     __tablename__ = "player_quests"
     
-    id:             Mapped[int]             = mapped_column(primary_key=True)
-    player_id:      Mapped[int]             = mapped_column(ForeignKey("players.id"), index=True)
-    quest_id:       Mapped[int]             = mapped_column(ForeignKey("quests.id"), index=True)
-    status:         Mapped[str]             = mapped_column(String(32))
-    progress:       Mapped[dict[str, Any]]  = mapped_column(MutableDict.as_mutable(JSON))
-    # progress: Mapped[dict[str, Any]] = mapped_column(JSONB)                                           **for posstgres!
+    id:             Mapped[int]                 = mapped_column(primary_key=True)
+    player_id:      Mapped[int]                 = mapped_column(ForeignKey("players.id"), index=True)
+    quest_id:       Mapped[int]                 = mapped_column(ForeignKey("quests.id"), index=True)
+    status:         Mapped[str]                 = mapped_column(String(32))
+    progress:       Mapped[dict[str, Any]]      = mapped_column(MutableDict.as_mutable(JSON))
+    # progress:     Mapped[dict[str, Any]]      = mapped_column(JSONB)                                           **for posstgres!
     
-    quest:          Mapped["Quest"]         = relationship(back_populates="player_quests")
+    quest:          Mapped["Quest"]             = relationship(back_populates="player_quests")
 
 # Test your code
 if __name__ == "__main__":
