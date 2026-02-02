@@ -50,7 +50,7 @@ def generate_backstory(character_class: str, name: str) -> str:
     
     ai_msg = model.invoke(message)
     
-    return ai_msg.text
+    return ai_msg.content
 
 
 # Test your code
@@ -71,14 +71,45 @@ Create a loot drop generator that returns structured data:
 
 # TODO: Create your Pydantic models
 class LootItem(BaseModel):
-    pass
+    name: str = Field()
+    rarity: str = Field()
+    value: int
 
 class LootDrop(BaseModel):
-    pass
+    items: list[LootItem] = Field(
+        description="""
+        A list of LootItem objects which have three fields: 
+            1. name, which is the name of the item as a Python String.
+            2. rarity, which is a Python String. Has four options: Common, Uncommon, Rare and Mythic Rare.
+            3. value, which is the total value of the item as a Python Int.
+        """)
+    total_value: int = Field(description="The total value of all items as a Python Int.")
 
 # TODO: Create your loot generator
 def generate_loot(enemy_type: str) -> LootDrop:
-    pass
+    model = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        temperature=0.7,
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+    )
+    
+    parser = PydanticOutputParser(pydantic_object=LootDrop)
+    
+    template = ChatPromptTemplate.from_messages([
+        ("system", "You are a loot generator. {format_instructions}"),
+        ("human", "Generate a loot drop for defeating a {enemy_type}. Output ONLY valid JSON, no extra text."),
+    ])
+    
+    message = template.format_messages(
+        format_instructions=parser.get_format_instructions(),
+        enemy_type=enemy_type
+    )
+    
+    ai_msg = model.invoke(message)
+    
+    return parser.parse(ai_msg.content)
 
 
 # Test your code
@@ -101,10 +132,12 @@ Create a simplified version of your story generator:
 
 # TODO: Create your Pydantic models
 class StoryChoice(BaseModel):
-    pass
+    text: str
+    outcome: str
 
 class StoryNode(BaseModel):
-    pass
+    contetn: str
+    choices: list[StoryChoice]
 
 # TODO: Create your story node generator
 def generate_story_node(theme: str) -> StoryNode:
