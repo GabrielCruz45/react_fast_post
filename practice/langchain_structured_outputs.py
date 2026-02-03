@@ -130,18 +130,42 @@ Create a simplified version of your story generator:
 - The LLM should return a complete StoryNode with 2 choices
 """
 
+from prompts import STORY_PROMPT
+
 # TODO: Create your Pydantic models
 class StoryChoice(BaseModel):
     text: str
     outcome: str
 
 class StoryNode(BaseModel):
-    contetn: str
+    content: str
     choices: list[StoryChoice]
 
 # TODO: Create your story node generator
 def generate_story_node(theme: str) -> StoryNode:
-    pass
+    model = ChatGoogleGenerativeAI( 
+        model="gemini-2.5-flash",
+        temperature=0.7,
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+    )
+    
+    parser = PydanticOutputParser(pydantic_object=StoryNode)
+    
+    template = ChatPromptTemplate.from_messages([
+        ("system", STORY_PROMPT + "\n\n{format_instructions}"),
+        ("human", "Create the story with this theme: {theme}"),
+    ])
+    
+    message = template.format_messages(
+        format_instructions=parser.get_format_instructions(),
+        theme=theme
+    )
+    
+    ai_msg = model.invoke(message)
+    
+    return parser.parse(ai_msg.content)
 
 
 # Test your code
