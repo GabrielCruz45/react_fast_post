@@ -1,6 +1,26 @@
 # TIER 9: Advanced Python Patterns
 # ==================================
 
+# Recursion pattern
+
+# def recursive_function(self, params):
+#     # 1. BASE CASE(S) - when to stop recursing
+#     if [some condition]:
+#         return [base value]
+    
+#     # 2. RECURSIVE CASE - process current level
+#     result = [do something with current node]
+    
+#     # 3. RECURSE - go deeper into structure
+#     for child in self.children:
+#         child_result = child.recursive_function(params)
+#         [combine child_result with result]
+    
+#     # 4. RETURN - combined result
+#     return result
+
+
+
 """
 EXERCISE 1: Recursive Data Structures
 --------------------------------------
@@ -20,16 +40,40 @@ class Skill:
         self.prerequisites = prerequisites or []
     
     # TODO: Implement has_skill recursively
-    def has_skill(self, skill_name: str) -> bool:
-        pass
+    def has_skill(self, skill_name: str) -> bool: 
+        # First, check current
+        if self.name == skill_name:
+            return True
+        
+        
+        # Then, recurse for further
+        for skill in self.prerequisites:
+            if skill.has_skill(skill_name):
+                return True
+        
+         
+        # If not found; deep in a Shinganshina basement
+        return False
+            
+            
     
     # TODO: Implement get_all_skills recursively
-    def get_all_skills(self) -> List[str]:
-        pass
+    def get_all_skills(self) -> list[str]:
+        skills = []
+        skills.append(self.name) 
+        
+        for child in self.prerequisites:
+            skill = child.get_all_skills()
+            skills.extend(skill)
+
+        return skills
+   
     
     # TODO: Implement calculate_total_levels recursively
     def calculate_total_levels(self) -> int:
-        pass
+        sum = 0
+        
+        return sum
 
 
 # Test your code
