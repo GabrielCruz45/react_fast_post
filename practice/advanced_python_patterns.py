@@ -114,8 +114,23 @@ class CharacterObject:
         self.class_type = class_type
 
 # TODO: Implement your flexible processor
-def process_character(data) -> Dict[str, Any]:
-    pass
+def process_character(data) -> Dict[str, Any]:  
+    
+    # check if dict
+    if isinstance(data, dict):
+        get = lambda key: data[key]
+    elif hasattr(data, 'class_type'):
+        get = lambda key: getattr(data, key)
+    else:
+        print('Needs to be a dictionary or an object!')
+        return None
+    
+    return {
+        'name' : get('name'),
+        'level' : get('level'),
+        'class_type' : get('class_type')
+    }
+    
 
 
 # Test your code
@@ -143,16 +158,30 @@ Recreate the story node processing logic:
 
 class TreeNode:
     def __init__(self, value: str):
-        self.value = value
-        self.children: List['TreeNode'] = []
+        self.value:     str                 = value
+        self.children:  List['TreeNode']    = []
 
 # TODO: Implement recursive tree builder
-def build_tree(data: Dict[str, Any]) -> TreeNode:
-    pass
+def build_tree(data: dict[str, Any]) -> TreeNode:
+    tree = TreeNode(data['value'])
+    tree.children = data['children']
+    
+    for child in tree.children:
+        build_tree(child)
+  
+    return tree
 
 # TODO: Implement recursive tree printer
 def print_tree(node: TreeNode, indent: int = 0):
-    pass
+    # print 'value' with indent
+    print("\t" * indent + node.value)
+    
+    # deal with children
+    for child in node.children:
+        recursive_node = TreeNode(child['value'])
+        recursive_node.children = child['children']
+        print_tree(recursive_node, indent + 1)
+
 
 
 # Test your code
