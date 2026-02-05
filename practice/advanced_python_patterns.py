@@ -56,7 +56,6 @@ class Skill:
         return False
             
             
-    
     # TODO: Implement get_all_skills recursively
     def get_all_skills(self) -> list[str]:
         skills = []
@@ -72,6 +71,11 @@ class Skill:
     # TODO: Implement calculate_total_levels recursively
     def calculate_total_levels(self) -> int:
         sum = 0
+        sum += self.level_required
+        
+        for child in self.prerequisites:
+            recursive_sum = child.calculate_total_levels()
+            sum += recursive_sum
         
         return sum
 
