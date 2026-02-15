@@ -159,28 +159,27 @@ Recreate the story node processing logic:
 class TreeNode:
     def __init__(self, value: str):
         self.value:     str                 = value
-        self.children:  List['TreeNode']    = []
+        self.children:  list['TreeNode']    = []
 
 # TODO: Implement recursive tree builder
 def build_tree(data: dict[str, Any]) -> TreeNode:
     tree = TreeNode(data['value'])
-    tree.children = data['children']
+
+    for child in data['children']:
+        # tree.children = build_tree(child) ---- assigns a single TreeNode, not a list
+        tree.children.append(build_tree(child))
     
-    for child in tree.children:
-        build_tree(child)
-  
-    return tree
+    return tree                                                                                                         
 
 # TODO: Implement recursive tree printer
 def print_tree(node: TreeNode, indent: int = 0):
+    
     # print 'value' with indent
     print("\t" * indent + node.value)
     
     # deal with children
     for child in node.children:
-        recursive_node = TreeNode(child['value'])
-        recursive_node.children = child['children']
-        print_tree(recursive_node, indent + 1)
+        print_tree(child, indent + 1)
 
 
 
@@ -205,6 +204,7 @@ if __name__ == "__main__":
         ]
     }
     
+    print("\n\n\n\n")
     tree = build_tree(tree_data)
     print_tree(tree)
 
