@@ -33,7 +33,7 @@ Create a QuestGenerator class that:
 """
 
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, create_engine
-from sqlalchemy.orm import declarative_base, relationship, Session
+from sqlalchemy.orm import declarative_base, relationship, Session, mapped_column, Mapped
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -46,35 +46,66 @@ load_dotenv()
 
 # TODO 1: Create your config
 class Config(BaseSettings):
-    pass
+    google_api_key: str
+    
+    class Config_():
+        env_file                    =           [".env",]
+        env_file_encoding           =           "utf-8"
+        case_sensitive              =           False
+        extra                       =           "ignore"
+  
+    
 
 
 # TODO 2: Create your Pydantic models for LLM output
 class QuestObjectiveLLM(BaseModel):
-    pass
+    description:    str
+    completed:      bool
 
 class GeneratedQuestLLM(BaseModel):
-    pass
-
+    title:          str
+    description:    str
+    difficulty:     str
+    reward_gold:    int
+    objectives:     list['QuestObjectiveLLM']
+    
 
 # TODO 3: Create your SQLAlchemy models
 Base = declarative_base()
 
 class Quest(Base):
     __tablename__ = "quests"
-    pass
+
+    id:             Mapped[int]         = mapped_column(primary_key=True)
+    title:          Mapped[str]         = mapped_column(String(32))
+    description:    Mapped[str]         = mapped_column(String(256))
+    difficulty:     Mapped[str]         = mapped_column(String(32))
+    reward_gold:    Mapped[int]         = mapped_column(default=0)
+    
+    objectives:    Mapped[list['QuestObjective']] = relationship(back_populates="quest", cascade="all, delete-orphan")
 
 class QuestObjective(Base):
     __tablename__ = "quest_objectives"
-    pass
-
+    
+    id:             Mapped[int]     = mapped_column(primary_key=True)
+    quest_id:       Mapped[int]     = mapped_column(ForeignKey("quests.id"), index=True)
+    description:    Mapped[str]     = mapped_column(String(256))
+    completed:      Mapped[bool]    = mapped_column()
+    
+    quest:          Mapped['Quest'] = relationship(back_populates="objectives")
 
 # TODO 4: Create your QuestGenerator class
 class QuestGenerator:
     
     @classmethod
     def _get_llm(cls):
-        pass
+        return ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        temperature=0.7,
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+    )
     
     @classmethod
     def generate_quest(cls, db: Session, theme: str) -> Quest:
@@ -90,7 +121,52 @@ class QuestGenerator:
         6. Create QuestObjective entries using quest.id
         7. Commit and return
         """
-        pass
+        
+        # get llm instance, parser and template
+        model = cls._get_llm()
+        parser = PydanticOutputParser(pydantic_object=GeneratedQuestLLM)
+        template = ChatPromptTemplate.from_messages([
+            ("system", "You are a fantasy-game backstory writer. {format_instructions}"),
+            ("human", "Create a quest with 3 objectives based on this theme: {theme}"),
+        ])
+        
+        message = template.format_messages(
+            format_instructions=parser.get_format_instructions(),
+            theme=theme,
+        )
+        
+
+        # invoke message then parse
+        parsed_message = parser.parse(model.invoke(message).content)
+        
+        # store parsed object
+        quest               = Quest()
+        
+        # populate new quest object
+        quest.title         = parsed_message.title
+        quest.description   = parsed_message.description
+        quest.difficulty    = parsed_message.difficulty
+        quest.reward_gold   = parsed_message.reward_gold
+        
+        
+        db.add(quest)
+        db.flush()
+        
+        for objective in parsed_message.objectives:
+            # temporary object
+            new_objective = QuestObjective()
+            
+            # populate
+            new_objective.description = objective.description
+            new_objective.completed = objective.completed
+            new_objective.quest_id = quest.id
+            
+            # add to quest object
+            quest.objectives.append(new_objective)
+            
+        
+        db.commit()
+        return quest
 
 
 # Test your code

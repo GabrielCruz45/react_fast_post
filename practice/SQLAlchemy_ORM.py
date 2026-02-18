@@ -26,10 +26,10 @@ Base = declarative_base()
 class Player(Base):
     __tablename__ = "players"
     
-    id:         Mapped[int]         = mapped_column(primary_key=True)
-    username:   Mapped[str]         = mapped_column(String(32))
-    level:      Mapped[int]         = mapped_column(default=1)
-    created_at: Mapped[datetime]    = mapped_column(server_default=func.now())
+    id:                         Mapped[int]         = mapped_column(primary_key=True)
+    username:                   Mapped[str]         = mapped_column(String(32))
+    level:                      Mapped[int]         = mapped_column(default=1)
+    created_at:                 Mapped[datetime]    = mapped_column(server_default=func.now())
      
     characters: Mapped[list["Character"]] = relationship(
         back_populates="player_from_character", 
@@ -42,12 +42,12 @@ class Player(Base):
 class Character(Base):
     __tablename__ = "characters"
     
-    id:         Mapped[int]         = mapped_column(primary_key=True)
-    player_id:  Mapped[int]         = mapped_column(ForeignKey("players.id"), index=True)
-    name:       Mapped[str]         = mapped_column(String(32))
-    class_type: Mapped[str]         = mapped_column(String(32))
+    id:                         Mapped[int]         = mapped_column(primary_key=True)
+    player_id:                  Mapped[int]         = mapped_column(ForeignKey("players.id"), index=True)
+    name:                       Mapped[str]         = mapped_column(String(32))
+    class_type:                 Mapped[str]         = mapped_column(String(32))
     
-    player_from_character:     Mapped["Player"]    = relationship(back_populates="characters")
+    player_from_character:      Mapped["Player"]    = relationship(back_populates="characters")
     
     
     
